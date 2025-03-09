@@ -34,10 +34,8 @@ RUN poetry config virtualenvs.create false \
 # Runtime stage
 FROM python:3.11-slim
 
-# Install runtime dependencies
-RUN apt-get update \
-    && echo "deb https://deb.debian.org/debian/ stable main" > /etc/apt/sources.list \
-    && apt-get install -y --no-install-recommends \
+# Install dependencies
+RUN apt-get update && apt-get install -y \
     ffmpeg \
     libcairo2 \
     libpango1.0-0 \
@@ -54,10 +52,10 @@ COPY .env .env
 # Copy built packages and application
 COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
 COPY --from=builder /usr/local/bin/poetry /usr/local/bin/poetry
-COPY manimator ./manimator
+COPY manimator /app/manimator
 
-ENV PYTHONPATH=/app/manimator
-ENV $(cat .env | xargs)
+ENV PYTHONPATH=/app
+RUN export $(cat .env | xargs)
 EXPOSE 7860
 ENV GRADIO_SERVER_NAME="0.0.0.0"
 CMD ["python", "manimator/gradio_app.py"]
